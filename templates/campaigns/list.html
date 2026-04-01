@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Campaigns - DM Automator{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Campaigns</h1>
+    <a href="/dashboard/campaigns/new" class="btn btn-primary">+ New Campaign</a>
+</div>
+
+{% if campaign_data %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Platform</th>
+            <th>Keyword</th>
+            <th>Post ID</th>
+            <th>Status</th>
+            <th>Comments</th>
+            <th>DMs Sent</th>
+            <th>Created</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in campaign_data %}
+        <tr>
+            <td><span class="badge badge-{{ item.campaign.platform }}">{{ item.campaign.platform }}</span></td>
+            <td><code>{{ item.campaign.keyword }}</code></td>
+            <td class="truncate">{{ item.campaign.post_id[:20] }}...</td>
+            <td>
+                {% if item.campaign.is_active %}
+                <span class="badge badge-active">Active</span>
+                {% else %}
+                <span class="badge badge-inactive">Inactive</span>
+                {% endif %}
+            </td>
+            <td>{{ item.comments }}</td>
+            <td>{{ item.dms_sent }}</td>
+            <td>{{ item.campaign.created_at.strftime('%Y-%m-%d') }}</td>
+            <td>
+                <a href="/dashboard/campaigns/{{ item.campaign.id }}" class="btn btn-sm">View</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+    <p>No campaigns yet. Create your first one!</p>
+    <a href="/dashboard/campaigns/new" class="btn btn-primary">+ New Campaign</a>
+</div>
+{% endif %}
+{% endblock %}

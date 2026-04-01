@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}New Campaign - DM Automator{% endblock %}
+
+{% block content %}
+<h1>Create Campaign</h1>
+
+<form id="campaignForm" class="form-card">
+    <div class="form-group">
+        <label for="platform">Platform</label>
+        <select id="platform" name="platform" required>
+            <option value="instagram">Instagram</option>
+            <option value="linkedin">LinkedIn</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="post_id">Post ID</label>
+        <input type="text" id="post_id" name="post_id" required
+               placeholder="Instagram Media ID or LinkedIn Post URN">
+        <small>Instagram: Media ID from Graph API. LinkedIn: Post URN (e.g., urn:li:share:123456)</small>
+    </div>
+
+    <div class="form-group">
+        <label for="post_url">Post URL (optional)</label>
+        <input type="url" id="post_url" name="post_url" placeholder="https://instagram.com/p/...">
+    </div>
+
+    <div class="form-group">
+        <label for="keyword">Trigger Keyword</label>
+        <input type="text" id="keyword" name="keyword" required placeholder="MATERIAL">
+        <small>Case-insensitive. When someone comments this word, they get the DM.</small>
+    </div>
+
+    <div class="form-group">
+        <label>Materials to Send</label>
+        <div id="materials-container">
+            <div class="material-row">
+                <select name="material_type">
+                    <option value="text">Text</option>
+                    <option value="link">Link (PDF, Drive, etc.)</option>
+                    <option value="image_url">Image URL</option>
+                </select>
+                <textarea name="material_content" rows="2" placeholder="Enter text or URL..." required></textarea>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeMaterial(this)">Remove</button>
+            </div>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="addMaterial()">+ Add Material</button>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Create Campaign</button>
+        <a href="/dashboard/campaigns" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+
+<div id="result-msg" class="alert" style="display:none;"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function addMaterial() {
+    const container = document.getElementById('materials-container');
+    const row = document.createElement('div');
+    row.className = 'material-row';
+    row.innerHTML = `
+        <select name="material_type">
+            <option value="text">Text</option>
+            <option value="link">Link (PDF, Drive, etc.)</option>
+            <option value="image_url">Image URL</option>
+        </select>
+        <textarea name="material_content" rows="2" placeholder="Enter text or URL..." required></textarea>
+        <button type="button" class="btn btn-danger btn-sm" onclick="removeMaterial(this)">Remove</button>
+    `;
+    container.appendChild(row);
+}
+
+function removeMaterial(btn) {
+    const container = document.getElementById('materials-container');
+    if (container.children.length > 1) {
+        btn.closest('.material-row').remove();
+    }
+}
+
+document.getElementById('campaignForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const rows = form.querySelectorAll('.material-row');
+    const materials = [];
+    rows.forEach((row, i) => {
+        materials.push({
+            material_type: row.querySelector('select').value,
+            content: row.querySelector('textarea').value,
+            order: i,
+        });
+    });
+
+    const body = {
+        platform: form.querySelector('#platform').value,
+        post_id: form.querySelector('#post_id').value,
+        post_url: form.querySelector('#post_url').value || null,
+        keyword: form.querySelector('#keyword').value,
+        materials: materials,
+    };
+
+    try {
+        const resp = await fetch('/api/campaigns', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body),
+        });
+        if (resp.ok) {
+            const data = await resp.json();
+            window.location.href = `/dashboard/campaigns/${data.id}`;
+        } else {
+            const err = await resp.json();
+            showResult(err.detail || 'Error creating campaign', 'error');
+        }
+    } catch (err) {
+        showResult('Network error', 'error');
+    }
+});
+
+function showResult(msg, type) {
+    const el = document.getElementById('result-msg');
+    el.textContent = msg;
+    el.className = `alert alert-${type}`;
+    el.style.display = 'block';
+}
+</script>
+{% endblock %}

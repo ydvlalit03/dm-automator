@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Campaign: {{ campaign.keyword }} - DM Automator{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Campaign: <code>{{ campaign.keyword }}</code></h1>
+    <span class="badge badge-{{ campaign.platform }}">{{ campaign.platform }}</span>
+    {% if campaign.is_active %}
+    <span class="badge badge-active">Active</span>
+    {% else %}
+    <span class="badge badge-inactive">Inactive</span>
+    {% endif %}
+</div>
+
+<div class="detail-card">
+    <p><strong>Post ID:</strong> {{ campaign.post_id }}</p>
+    {% if campaign.post_url %}
+    <p><strong>Post URL:</strong> <a href="{{ campaign.post_url }}" target="_blank">{{ campaign.post_url }}</a></p>
+    {% endif %}
+    <p><strong>Created:</strong> {{ campaign.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+
+    <h3>Materials</h3>
+    {% for mat in campaign.materials|sort(attribute='order') %}
+    <div class="material-item">
+        <span class="badge">{{ mat.material_type }}</span>
+        <span>{{ mat.content[:100] }}{% if mat.content|length > 100 %}...{% endif %}</span>
+    </div>
+    {% endfor %}
+
+    <div class="detail-actions">
+        <button class="btn btn-warning" onclick="toggleActive({{ campaign.id }}, {{ 'false' if campaign.is_active else 'true' }})">
+            {{ 'Deactivate' if campaign.is_active else 'Activate' }}
+        </button>
+        <button class="btn btn-danger" onclick="deleteCampaign({{ campaign.id }})">Delete</button>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-number">{{ stats.total_comments }}</div>
+        <div class="stat-label">Comments Matched</div>
+    </div>
+    <div class="stat-card stat-success">
+        <div class="stat-number">{{ stats.total_sent }}</div>
+        <div class="stat-label">DMs Sent</div>
+    </div>
+    <div class="stat-card stat-danger">
+        <div class="stat-number">{{ stats.total_failed }}</div>
+        <div class="stat-label">Failed</div>
+    </div>
+    <div class="stat-card stat-warning">
+        <div class="stat-number">{{ stats.total_pending }}</div>
+        <div class="stat-label">Pending Manual</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ stats.total_skipped }}</div>
+        <div class="stat-label">Skipped (24h)</div>
+    </div>
+</div>
+
+<div class="tabs">
+    <button class="tab-btn active" onclick="showTab('comments')">Comment Log</button>
+    <button class="tab-btn" onclick="showTab('dms')">DM Log</button>
+</div>
+
+<div id="tab-comments" class="tab-content active">
+    <table class="table">
+        <thead>
+            <tr><th>User</th><th>Comment</th><th>Time</th></tr>
+        </thead>
+        <tbody>
+            {% for log in comment_logs %}
+            <tr>
+                <td>{{ log.commenter_username or log.commenter_platform_id[:15] }}</td>
+                <td>{{ log.comment_text[:80] }}</td>
+                <td>{{ log.detected_at.strftime('%m/%d %H:%M') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div id="tab-dms" class="tab-content">
+    <table class="table">
+        <thead>
+            <tr><th>Recipient</th><th>Status</th><th>Error</th><th>Time</th></tr>
+        </thead>
+        <tbody>
+            {% for dm in dm_logs %}
+            <tr>
+                <td>{{ dm.recipient_platform_id[:20] }}</td>
+                <td><span class="badge badge-{{ dm.status }}">{{ dm.status }}</span></td>
+                <td>{{ (dm.error_message or '')[:50] }}</td>
+                <td>{{ dm.created_at.strftime('%m/%d %H:%M') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showTab(name) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+}
+
+async function toggleActive(id, active) {
+    await fetch(`/api/campaigns/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({is_active: active}),
+    });
+    location.reload();
+}
+
+async function deleteCampaign(id) {
+    if (!confirm('Are you sure? This will delete all logs too.')) return;
+    await fetch(`/api/campaigns/${id}`, {method: 'DELETE'});
+    window.location.href = '/dashboard/campaigns';
+}
+</script>
+{% endblock %}

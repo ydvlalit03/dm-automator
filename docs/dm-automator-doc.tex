@@ -1,0 +1,307 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=0.9in]{geometry}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{fancyhdr}
+\usepackage{tcolorbox}
+\usepackage{parskip}
+
+\definecolor{pri}{HTML}{4361EE}
+\definecolor{dk}{HTML}{1A1A2E}
+
+\hypersetup{colorlinks=true, linkcolor=dk, urlcolor=pri}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{gray}{Leadfreak}}
+\fancyhead[R]{\small\textcolor{gray}{DM Automator --- User Guide}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\setlength{\parskip}{0.5em}
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+% ============ TITLE PAGE ============
+\thispagestyle{empty}
+\begin{center}
+\vspace*{3cm}
+
+{\fontsize{42}{48}\selectfont\bfseries\textcolor{dk}{Leadfreak}}
+
+\vspace{0.6cm}
+{\LARGE\textcolor{pri}{DM Automator}}
+
+\vspace{0.3cm}
+{\large\textcolor{gray}{Comment-to-DM Automation for Instagram \& LinkedIn}}
+
+\vspace{2.5cm}
+
+\begin{tcolorbox}[colback=blue!3, colframe=pri, boxrule=0.5pt, width=0.75\textwidth, halign=center]
+{\large User Guide \& Setup Documentation}
+
+\vspace{0.3cm}
+Version 1.0\quad|\quad April 2026
+\end{tcolorbox}
+
+\vfill
+{\small\textcolor{gray}{Confidential --- Leadfreak Internal}}
+\end{center}
+\newpage
+
+% ============ TOC ============
+\tableofcontents
+
+% ============ SECTION 1 ============
+\newpage
+\section{What Is This Tool?}
+
+DM Automator is a self-hosted automation tool built by \textbf{Leadfreak} for social media influencers and content creators.
+
+\textbf{Problem:} An influencer posts a reel and says \textit{``Comment MATERIAL to get the PDF''}. Thousands of people comment. Sending a DM to each one manually is impossible at scale.
+
+\textbf{Solution:} This tool automatically detects keyword comments and instantly sends the material via DM --- without relying on any third-party tools (ManyChat, MobileMonkey, etc.).
+
+\begin{tcolorbox}[colback=blue!3, colframe=pri, boxrule=0.4pt]
+\textbf{Supported Platforms:} Instagram (fully automated DM) + LinkedIn (semi-automated)\\[0.2em]
+\textbf{Material Types:} PDF links, Google Drive links, text messages, image URLs --- anything
+\end{tcolorbox}
+
+% ============ SECTION 2 ============
+\section{Workflow --- How It Works}
+
+\subsection{Instagram (Fully Automated)}
+
+\begin{tcolorbox}[colback=blue!2, colframe=pri!60, boxrule=0.3pt]
+\begin{enumerate}[leftmargin=1.5em, itemsep=0.4em]
+    \item You publish a post or reel on Instagram
+    \item You create a \textbf{Campaign} on the dashboard --- post ID + keyword + material
+    \item A user comments ``\texttt{MATERIAL}'' on that post
+    \item Instagram sends a \textbf{webhook} notification to our server instantly
+    \item The server performs a keyword match
+    \item \textbf{The DM is sent automatically} to the user's inbox
+\end{enumerate}
+\end{tcolorbox}
+
+\begin{tcolorbox}[colback=red!3, colframe=red!50, boxrule=0.4pt, title={\small Instagram Limitation}]
+The Instagram Messaging API only allows sending a DM if the user has \textbf{messaged your business account within the last 24 hours}. If this window is not open, the DM is marked as \texttt{skipped} and shown on the dashboard. This is a Meta platform restriction, not a tool limitation.
+\end{tcolorbox}
+
+\subsection{LinkedIn (Semi-Automated)}
+
+LinkedIn's Messaging API is restricted to select partners only. Therefore, a \textbf{poll-and-notify} model is used:
+
+\begin{enumerate}[leftmargin=1.5em, itemsep=0.3em]
+    \item The tool checks post comments every \textbf{5 minutes} via polling
+    \item When a keyword match is found, the user appears on the \textbf{dashboard}
+    \item You can then either:
+    \begin{itemize}[itemsep=0.2em]
+        \item \textbf{Send a manual DM} --- the profile link is provided on the dashboard
+        \item \textbf{Auto-reply to their comment} with the material link --- this is automated
+    \end{itemize}
+\end{enumerate}
+
+% ============ SECTION 3 ============
+\section{Features}
+
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Feature} & \textbf{Description} \\
+\midrule
+Campaign Management & Link a post to a keyword and material, with on/off toggle \\[0.3em]
+Auto DM (Instagram) & DM is sent as soon as the keyword comment is detected \\[0.3em]
+Comment Polling (LinkedIn) & Checks comments every 5 minutes and lists matched users \\[0.3em]
+Comment Reply (LinkedIn) & Auto-replies to matched comments with the material link \\[0.3em]
+Multiple Materials & A single campaign can include multiple items --- PDF + text + image \\[0.3em]
+Dashboard & Overview stats --- comments detected, DMs sent, failed, pending \\[0.3em]
+Comment \& DM Logs & Full record of every comment and DM --- who, when, status \\[0.3em]
+Settings Page & Configure Instagram and LinkedIn API tokens \\[0.3em]
+Login System & Password-protected dashboard access \\
+\bottomrule
+\end{tabularx}
+
+% ============ SECTION 4 ============
+\section{Requirements for Going Live}
+
+\subsection{Instagram Setup}
+
+\begin{enumerate}[leftmargin=1.5em, itemsep=0.3em]
+    \item \textbf{Instagram Business or Creator Account} --- a personal account will not work
+    \item \textbf{Facebook Page} connected to the Instagram account
+    \item \textbf{Meta Developer App} --- create one for free at \texttt{developers.facebook.com}
+    \begin{itemize}[itemsep=0.2em]
+        \item Add the ``Instagram'' product to the app
+        \item Set the webhook URL: \texttt{https://your-server-ip/webhooks/instagram}
+        \item Subscribe to the \texttt{comments} field
+    \end{itemize}
+    \item \textbf{Permissions} (enable these in the Meta App):
+    \begin{itemize}[itemsep=0.2em]
+        \item \texttt{instagram\_business\_basic}
+        \item \texttt{instagram\_business\_manage\_messages}
+        \item \texttt{instagram\_business\_manage\_comments}
+    \end{itemize}
+    \item \textbf{Page Access Token} --- generate from the Meta Developer portal (valid for 60 days, must be refreshed)
+\end{enumerate}
+
+\begin{tcolorbox}[colback=blue!3, colframe=pri, boxrule=0.4pt]
+\textbf{Note:} If you are only using your own account, \textit{Standard Access} is sufficient --- no app review is required. For third-party accounts, \textit{Advanced Access} is needed (requires Meta review).
+\end{tcolorbox}
+
+\subsection{LinkedIn Setup}
+
+\begin{enumerate}[leftmargin=1.5em, itemsep=0.3em]
+    \item \textbf{LinkedIn Company Page} (Organization)
+    \item \textbf{LinkedIn Developer App} --- create for free at \texttt{linkedin.com/developers}
+    \begin{itemize}[itemsep=0.2em]
+        \item Request the ``Community Management API'' product
+        \item Associate the app with your Company Page
+    \end{itemize}
+    \item \textbf{Permissions}: \texttt{r\_organization\_social} (read) + \texttt{w\_organization\_social} (write)
+    \item \textbf{OAuth2 Access Token} --- valid for 60 days
+\end{enumerate}
+
+\subsection{Server / Hosting}
+
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Requirement} & \textbf{Details} \\
+\midrule
+Server / VPS & Any VPS with 1 CPU and 1 GB RAM is sufficient \\[0.3em]
+HTTPS (SSL) & \textbf{Mandatory} --- Meta does not send webhooks without HTTPS. Free via Let's Encrypt or Cloudflare Tunnel \\[0.3em]
+Python 3.11+ & Must be installed on the server \\
+\bottomrule
+\end{tabularx}
+
+\begin{tcolorbox}[colback=blue!3, colframe=pri, boxrule=0.4pt]
+\textbf{Note:} A custom domain name is \textbf{not required}. You can use the server's IP address with a free Cloudflare Tunnel or a free subdomain from your hosting provider for HTTPS.
+\end{tcolorbox}
+
+% ============ SECTION 5 ============
+\newpage
+\section{Costing}
+
+\subsection{One-Time Costs}
+
+\begin{tabularx}{\textwidth}{Xrl}
+\toprule
+\textbf{Item} & \textbf{Cost} & \textbf{Note} \\
+\midrule
+Meta Developer Account & Free & developers.facebook.com \\
+LinkedIn Developer App & Free & linkedin.com/developers \\
+SSL Certificate & Free & Let's Encrypt / Cloudflare \\
+\midrule
+\textbf{Total} & \textbf{\$0} & \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Monthly Hosting Costs}
+
+\begin{tabularx}{\textwidth}{Xrl}
+\toprule
+\textbf{Option} & \textbf{Cost/mo} & \textbf{Note} \\
+\midrule
+DigitalOcean (1 vCPU, 1GB) & \$6/mo & Simple VPS \\
+Hetzner Cloud & \$4/mo & Cheapest reliable VPS \\
+Railway / Render & \$5--7/mo & Managed, auto-deploy \\
+Oracle Cloud Free Tier & \textbf{Free} & 4 CPU, 24GB RAM --- free forever \\
+\bottomrule
+\end{tabularx}
+
+\subsection{API Costs}
+
+\begin{tabularx}{\textwidth}{Xr}
+\toprule
+\textbf{API} & \textbf{Cost} \\
+\midrule
+Instagram Graph API & Free \\
+Instagram Messaging API & Free \\
+LinkedIn API & Free \\
+\midrule
+\textbf{Total API Cost} & \textbf{\$0/month} \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Total Estimated Cost}
+
+\begin{tcolorbox}[colback=blue!3, colframe=pri, boxrule=0.4pt]
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{rl}
+Minimum (Oracle Free Tier) & \$0/month \\
+Recommended (Hetzner / DigitalOcean) & \$4--6/month \\
+\hline
+\textbf{Yearly Total} & \textbf{\$0--72/year} \\
+\end{tabular}
+\end{center}
+\end{tcolorbox}
+
+\subsection{Comparison with Alternatives}
+
+\begin{tabularx}{\textwidth}{Xr}
+\toprule
+\textbf{Tool} & \textbf{Cost/month} \\
+\midrule
+ManyChat Pro & \$15--65 \\
+MobileMonkey & \$29--99 \\
+IGdm Pro & \$39 \\
+\textbf{DM Automator (Leadfreak)} & \textbf{\$0--6} \\
+\bottomrule
+\end{tabularx}
+
+\vspace{0.5em}
+Annual savings compared to commercial tools: \textbf{\$180--\$1,100/year}.
+
+% ============ SECTION 6 ============
+\newpage
+\section{Quick Start Guide}
+
+\begin{enumerate}[leftmargin=1.5em, itemsep=0.6em]
+    \item \textbf{Install dependencies:}\\
+    \texttt{cd \textasciitilde/dm-automator \&\& pip install -r requirements.txt}
+
+    \item \textbf{Configure environment:}\\
+    \texttt{cp .env.example .env}\\
+    Open the \texttt{.env} file and enter your API tokens (IG token, Meta App Secret, etc.)
+
+    \item \textbf{Start the server:}\\
+    \texttt{uvicorn main:app --reload --port 8000}
+
+    \item \textbf{Open the dashboard:} \texttt{http://localhost:8000}
+    \begin{itemize}[itemsep=0.2em]
+        \item Log in with default credentials: \texttt{admin@example.com} / \texttt{changeme123}
+        \item Go to \textbf{Settings} and paste your Instagram / LinkedIn tokens
+        \item Create a \textbf{New Campaign} --- select platform, enter post ID, keyword, and material
+        \item Done! Whenever someone comments the keyword, the material will be sent automatically
+    \end{itemize}
+\end{enumerate}
+
+% ============ SECTION 7 ============
+\section{Dashboard Pages}
+
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Page} & \textbf{What It Shows} \\
+\midrule
+Dashboard & Total campaigns, comments detected, DMs sent / failed / pending \\[0.3em]
+Campaigns & List of all campaigns --- platform, keyword, status, stats \\[0.3em]
+New Campaign & Form to create a campaign --- platform, post ID, keyword, materials \\[0.3em]
+Campaign Detail & Full detail for a single campaign --- comment log, DM log, stats \\[0.3em]
+LinkedIn Pending & Users awaiting manual DM --- mark as sent or reply with link \\[0.3em]
+Settings & Configure Instagram \& LinkedIn API tokens, view connection status \\
+\bottomrule
+\end{tabularx}
+
+\vfill
+\begin{center}
+\rule{0.3\textwidth}{0.4pt}\\[0.5em]
+{\small\textcolor{gray}{Leadfreak --- DM Automator v1.0 --- April 2026}}
+\end{center}
+
+\end{document}

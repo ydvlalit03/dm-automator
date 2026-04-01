@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}LinkedIn Pending DMs - DM Automator{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>LinkedIn - Pending DMs</h1>
+    <button class="btn btn-primary" onclick="pollNow()">Poll Now</button>
+</div>
+
+<p>These users commented your keyword on LinkedIn. Since LinkedIn doesn't allow automated DMs, you need to send them manually or reply to their comment.</p>
+
+{% if pending_dms %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Campaign</th>
+            <th>User</th>
+            <th>Comment</th>
+            <th>Time</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for dm in pending_dms %}
+        <tr id="row-{{ dm.id }}">
+            <td><code>{{ dm.campaign.keyword }}</code></td>
+            <td>{{ dm.comment_log.commenter_username or dm.recipient_platform_id[:20] }}</td>
+            <td>{{ dm.comment_log.comment_text[:60] }}</td>
+            <td>{{ dm.created_at.strftime('%m/%d %H:%M') }}</td>
+            <td>
+                <button class="btn btn-sm btn-success" onclick="markSent({{ dm.id }})">Mark Sent</button>
+                <button class="btn btn-sm btn-primary" onclick="replyComment({{ dm.id }})">Reply with Link</button>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+    <p>No pending DMs. All caught up!</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function pollNow() {
+    const resp = await fetch('/api/linkedin/poll-now', {method: 'POST'});
+    const data = await resp.json();
+    alert(data.detail || 'Done');
+    location.reload();
+}
+
+async function markSent(id) {
+    await fetch(`/api/linkedin/mark-sent/${id}`, {method: 'POST'});
+    document.getElementById('row-' + id).remove();
+}
+
+async function replyComment(id) {
+    const resp = await fetch(`/api/linkedin/reply-comment/${id}`, {method: 'POST'});
+    const data = await resp.json();
+    if (data.status_code && data.status_code <= 201) {
+        document.getElementById('row-' + id).remove();
+        alert('Replied successfully!');
+    } else {
+        alert('Error: ' + JSON.stringify(data));
+    }
+}
+</script>
+{% endblock %}

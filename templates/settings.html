@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Settings - DM Automator{% endblock %}
+
+{% block content %}
+<h1>Settings</h1>
+
+<form method="post" action="/dashboard/settings" class="form-card">
+    <h2>Instagram Configuration</h2>
+    <div class="form-group">
+        <label for="ig_business_account_id">Instagram Business Account ID</label>
+        <input type="text" id="ig_business_account_id" name="ig_business_account_id"
+               value="{{ user.ig_business_account_id or '' }}" placeholder="17841400000000000">
+    </div>
+    <div class="form-group">
+        <label for="ig_page_access_token">Page Access Token</label>
+        <textarea id="ig_page_access_token" name="ig_page_access_token" rows="3"
+                  placeholder="EAAxxxxxxx...">{{ user.ig_page_access_token or '' }}</textarea>
+        <small>Long-lived Page Access Token from Meta Developer Portal</small>
+    </div>
+
+    <h2>LinkedIn Configuration</h2>
+    <div class="form-group">
+        <label for="linkedin_org_urn">Organization URN</label>
+        <input type="text" id="linkedin_org_urn" name="linkedin_org_urn"
+               value="{{ user.linkedin_org_urn or '' }}" placeholder="urn:li:organization:12345">
+    </div>
+    <div class="form-group">
+        <label for="linkedin_access_token">Access Token</label>
+        <textarea id="linkedin_access_token" name="linkedin_access_token" rows="3"
+                  placeholder="AQVxxxxxxx...">{{ user.linkedin_access_token or '' }}</textarea>
+        <small>OAuth2 Access Token from LinkedIn Developer Portal</small>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Settings</button>
+    </div>
+</form>
+
+<div class="form-card" style="margin-top: 2rem;">
+    <h2>Connection Status</h2>
+    <div class="status-grid">
+        <div class="status-item">
+            <strong>Instagram:</strong>
+            {% if user.ig_business_account_id and user.ig_page_access_token %}
+            <span class="badge badge-active">Connected</span>
+            {% else %}
+            <span class="badge badge-inactive">Not Connected</span>
+            {% endif %}
+        </div>
+        <div class="status-item">
+            <strong>LinkedIn:</strong>
+            {% if user.linkedin_access_token %}
+            <span class="badge badge-active">Connected</span>
+            {% else %}
+            <span class="badge badge-inactive">Not Connected</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

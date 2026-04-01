@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - DM Automator{% endblock %}
+
+{% block content %}
+<h1>Dashboard</h1>
+<p>Welcome back, {{ user.display_name or user.email }}!</p>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-number">{{ stats.total_campaigns }}</div>
+        <div class="stat-label">Total Campaigns</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ stats.active_campaigns }}</div>
+        <div class="stat-label">Active</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ stats.total_comments }}</div>
+        <div class="stat-label">Comments Detected</div>
+    </div>
+    <div class="stat-card stat-success">
+        <div class="stat-number">{{ stats.total_dms_sent }}</div>
+        <div class="stat-label">DMs Sent</div>
+    </div>
+    <div class="stat-card stat-danger">
+        <div class="stat-number">{{ stats.total_dms_failed }}</div>
+        <div class="stat-label">DMs Failed</div>
+    </div>
+    <div class="stat-card stat-warning">
+        <div class="stat-number">{{ stats.total_pending_manual }}</div>
+        <div class="stat-label">Pending Manual (LinkedIn)</div>
+    </div>
+</div>
+
+<div class="stats-grid" style="margin-top: 1rem;">
+    <div class="stat-card">
+        <div class="stat-number">{{ stats.ig_campaigns }}</div>
+        <div class="stat-label">Instagram Campaigns</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-number">{{ stats.linkedin_campaigns }}</div>
+        <div class="stat-label">LinkedIn Campaigns</div>
+    </div>
+</div>
+
+<div style="margin-top: 2rem;">
+    <a href="/dashboard/campaigns/new" class="btn btn-primary">+ New Campaign</a>
+    <a href="/dashboard/campaigns" class="btn btn-secondary">View All Campaigns</a>
+</div>
+{% endblock %}
