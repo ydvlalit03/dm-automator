@@ -7,12 +7,12 @@
 
 <div class="stats-grid">
     <div class="stat-card">
-        <div class="stat-number">{{ stats.total_campaigns }}</div>
-        <div class="stat-label">Total Campaigns</div>
+        <div class="stat-number">{{ stats.active_campaigns }}</div>
+        <div class="stat-label">Active Campaigns</div>
     </div>
     <div class="stat-card">
-        <div class="stat-number">{{ stats.active_campaigns }}</div>
-        <div class="stat-label">Active</div>
+        <div class="stat-number">{{ stats.tracked_posts }}</div>
+        <div class="stat-label">Tracked Posts</div>
     </div>
     <div class="stat-card">
         <div class="stat-number">{{ stats.total_comments }}</div>
@@ -22,29 +22,48 @@
         <div class="stat-number">{{ stats.total_dms_sent }}</div>
         <div class="stat-label">DMs Sent</div>
     </div>
+    <div class="stat-card stat-warning">
+        <div class="stat-number">{{ stats.queued_dms }}</div>
+        <div class="stat-label">In Queue</div>
+    </div>
     <div class="stat-card stat-danger">
         <div class="stat-number">{{ stats.total_dms_failed }}</div>
         <div class="stat-label">DMs Failed</div>
     </div>
-    <div class="stat-card stat-warning">
-        <div class="stat-number">{{ stats.total_pending_manual }}</div>
-        <div class="stat-label">Pending Manual (LinkedIn)</div>
-    </div>
 </div>
 
-<div class="stats-grid" style="margin-top: 1rem;">
-    <div class="stat-card">
-        <div class="stat-number">{{ stats.ig_campaigns }}</div>
-        <div class="stat-label">Instagram Campaigns</div>
+<!-- Rate Limit Bar -->
+<div class="rate-limit-section">
+    <h3>Daily DM Limit</h3>
+    <div class="rate-bar">
+        <div class="rate-bar-fill" style="width: {{ stats.rate_limit_pct }}%"></div>
     </div>
-    <div class="stat-card">
-        <div class="stat-number">{{ stats.linkedin_campaigns }}</div>
-        <div class="stat-label">LinkedIn Campaigns</div>
-    </div>
+    <small>{{ stats.dms_sent_today }} / {{ stats.dm_daily_limit }} sent today ({{ stats.rate_limit_pct }}%)</small>
 </div>
 
-<div style="margin-top: 2rem;">
-    <a href="/dashboard/campaigns/new" class="btn btn-primary">+ New Campaign</a>
-    <a href="/dashboard/campaigns" class="btn btn-secondary">View All Campaigns</a>
+<!-- Activity Feed -->
+<div class="activity-section">
+    <h3>Recent Activity</h3>
+    {% if recent_dms %}
+    <div class="activity-feed">
+        {% for dm in recent_dms %}
+        <div class="activity-item">
+            <span class="badge badge-{{ dm.status }}">{{ dm.status }}</span>
+            <span class="activity-text">
+                DM to <strong>{{ dm.recipient_platform_id[:15] }}</strong>
+                — campaign <code>{{ dm.campaign.keyword }}</code>
+            </span>
+            <span class="activity-time">{{ dm.created_at.strftime('%m/%d %H:%M') }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-muted">No activity yet.</p>
+    {% endif %}
+</div>
+
+<div style="margin-top: 1.5rem;">
+    <a href="/dashboard/posts/add" class="btn btn-primary">+ Add Posts</a>
+    <a href="/dashboard/campaigns/new" class="btn btn-secondary">+ New Campaign</a>
 </div>
 {% endblock %}

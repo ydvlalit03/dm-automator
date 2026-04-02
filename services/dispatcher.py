@@ -1,8 +1,11 @@
+import logging
+
 from sqlalchemy.orm import Session
 
-from models import Campaign
+from models import Campaign, CommentLog, DMQueue
 from services import keyword_matcher
-from services.instagram import process_comment_event
+
+logger = logging.getLogger(__name__)
 
 
 async def dispatch_instagram_comment(
@@ -13,7 +16,7 @@ async def dispatch_instagram_comment(
     commenter_id: str,
     commenter_username: str | None,
 ):
-    """Find matching campaigns for an IG comment and process them."""
+    """Find matching campaigns for an IG comment, log it, and queue DMs."""
     campaigns = (
         db.query(Campaign)
         .filter(
@@ -28,20 +31,43 @@ async def dispatch_instagram_comment(
         if not keyword_matcher.matches(comment_text, campaign.keyword):
             continue
 
-        user = campaign.user
-        ig_business_id = user.ig_business_account_id
-        access_token = user.ig_page_access_token
-
-        if not ig_business_id or not access_token:
+        # Check DM limit
+        if campaign.dm_limit and campaign.dm_count >= campaign.dm_limit:
+            logger.info("Campaign %d hit DM limit (%d), skipping", campaign.id, campaign.dm_limit)
             continue
 
-        await process_comment_event(
-            db=db,
-            campaign=campaign,
+        # Dedup by comment_id
+        existing = db.query(CommentLog).filter(CommentLog.comment_id == comment_id).first()
+        if existing:
+            continue
+
+        # Log the comment
+        comment_log = CommentLog(
+            campaign_id=campaign.id,
+            platform="instagram",
             comment_id=comment_id,
-            commenter_id=commenter_id,
+            commenter_platform_id=commenter_id,
             commenter_username=commenter_username,
             comment_text=comment_text,
-            ig_business_id=ig_business_id,
-            access_token=access_token,
         )
+        db.add(comment_log)
+        db.flush()
+
+        # Queue the DM instead of sending directly
+        queue_item = DMQueue(
+            campaign_id=campaign.id,
+            comment_log_id=comment_log.id,
+            recipient_id=commenter_id,
+            recipient_username=commenter_username,
+            status="queued",
+        )
+        db.add(queue_item)
+
+        logger.info(
+            "Queued DM for %s (campaign %d, keyword '%s')",
+            commenter_username or commenter_id,
+            campaign.id,
+            campaign.keyword,
+        )
+
+    db.commit()

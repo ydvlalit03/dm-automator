@@ -1,3 +1,5 @@
+import secrets
+
 from pydantic_settings import BaseSettings
 
 
@@ -17,9 +19,18 @@ class Settings(BaseSettings):
     LINKEDIN_CLIENT_SECRET: str = ""
     LINKEDIN_REDIRECT_URI: str = ""
 
+    # Rate Limits
+    DM_RATE_LIMIT_PER_DAY: int = 200
+
     DATABASE_URL: str = "sqlite:///./dm_automator.db"
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+
+    def get_secret_key(self) -> str:
+        """Auto-generate a secret key if the default is still in use."""
+        if self.SECRET_KEY == "change-me-to-a-random-32-char-string":
+            return secrets.token_hex(32)
+        return self.SECRET_KEY
 
 
 settings = Settings()

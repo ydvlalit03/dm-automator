@@ -13,9 +13,14 @@
 </div>
 
 <div class="detail-card">
+    {% if campaign.instagram_post %}
+    <p><strong>Post:</strong> <a href="{{ campaign.instagram_post.url }}" target="_blank">{{ campaign.instagram_post.url }}</a></p>
+    <p><strong>Shortcode:</strong> {{ campaign.instagram_post.shortcode }} | <strong>Media ID:</strong> {{ campaign.post_id }}</p>
+    {% else %}
     <p><strong>Post ID:</strong> {{ campaign.post_id }}</p>
-    {% if campaign.post_url %}
-    <p><strong>Post URL:</strong> <a href="{{ campaign.post_url }}" target="_blank">{{ campaign.post_url }}</a></p>
+    {% endif %}
+    {% if campaign.dm_limit %}
+    <p><strong>DM Limit:</strong> {{ campaign.dm_count }} / {{ campaign.dm_limit }}</p>
     {% endif %}
     <p><strong>Created:</strong> {{ campaign.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
 
@@ -49,8 +54,8 @@
         <div class="stat-label">Failed</div>
     </div>
     <div class="stat-card stat-warning">
-        <div class="stat-number">{{ stats.total_pending }}</div>
-        <div class="stat-label">Pending Manual</div>
+        <div class="stat-number">{{ stats.queued }}</div>
+        <div class="stat-label">In Queue</div>
     </div>
     <div class="stat-card">
         <div class="stat-number">{{ stats.total_skipped }}</div>
@@ -118,7 +123,7 @@ async function toggleActive(id, active) {
 }
 
 async function deleteCampaign(id) {
-    if (!confirm('Are you sure? This will delete all logs too.')) return;
+    if (!confirm('Delete this campaign and all its logs?')) return;
     await fetch(`/api/campaigns/${id}`, {method: 'DELETE'});
     window.location.href = '/dashboard/campaigns';
 }

@@ -102,6 +102,42 @@ code { background: #e8eaf6; padding: 2px 6px; border-radius: 4px; font-size: 0.9
 .status-grid { display: flex; flex-direction: column; gap: 0.8rem; }
 .status-item { display: flex; align-items: center; gap: 0.8rem; }
 
+/* Rate Limit Bar */
+.rate-limit-section { margin-top: 1.5rem; background: #fff; border-radius: 10px; padding: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.rate-limit-section h3 { margin-bottom: 0.5rem; font-size: 1rem; }
+.rate-bar { width: 100%; height: 12px; background: #e0e0e0; border-radius: 6px; overflow: hidden; }
+.rate-bar-fill { height: 100%; background: linear-gradient(90deg, #2ec4b6, #4361ee); border-radius: 6px; transition: width 0.3s; }
+.rate-limit-section small { color: #888; margin-top: 0.3rem; display: block; }
+
+/* Activity Feed */
+.activity-section { margin-top: 1.5rem; background: #fff; border-radius: 10px; padding: 1.2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.activity-section h3 { margin-bottom: 0.8rem; font-size: 1rem; }
+.activity-feed { display: flex; flex-direction: column; gap: 0.5rem; }
+.activity-item { display: flex; align-items: center; gap: 0.8rem; padding: 0.5rem 0; border-bottom: 1px solid #f0f2f5; }
+.activity-text { flex: 1; font-size: 0.9rem; }
+.activity-time { font-size: 0.8rem; color: #888; white-space: nowrap; }
+.text-muted { color: #888; }
+.text-danger { color: #e63946; }
+
+/* Toast Notifications */
+#toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 1000; display: flex; flex-direction: column; gap: 0.5rem; }
+.toast { padding: 0.8rem 1.2rem; border-radius: 8px; color: #fff; font-size: 0.9rem; transform: translateX(120%); transition: transform 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.toast.show { transform: translateX(0); }
+.toast-success { background: #2ec4b6; }
+.toast-error { background: #e63946; }
+.toast-info { background: #4361ee; }
+
+/* Queue badges */
+.badge-queued { background: #e3f2fd; color: #1565c0; }
+.badge-processing { background: #fff3e0; color: #e65100; }
+
+/* Truncate link */
+.truncate-link { max-width: 200px; display: inline-block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+
+/* Result sections */
+.result-section { margin-bottom: 1rem; }
+.result-section h3 { margin-bottom: 0.5rem; }
+
 /* Responsive */
 @media (max-width: 768px) {
     .navbar { flex-direction: column; gap: 0.5rem; }

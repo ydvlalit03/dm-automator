@@ -11,8 +11,9 @@
         <div class="nav-brand">DM Automator</div>
         <div class="nav-links">
             <a href="/dashboard">Dashboard</a>
+            <a href="/dashboard/posts">Posts</a>
             <a href="/dashboard/campaigns">Campaigns</a>
-            <a href="/dashboard/linkedin/pending">LinkedIn Pending</a>
+            <a href="/dashboard/queue">DM Queue</a>
             <a href="/dashboard/settings">Settings</a>
             <a href="/auth/logout" class="btn-logout">Logout</a>
         </div>
@@ -20,6 +21,7 @@
     <main class="container">
         {% block content %}{% endblock %}
     </main>
+    <div id="toast-container"></div>
     <script src="/static/app.js"></script>
     {% block scripts %}{% endblock %}
 </body>

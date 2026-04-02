@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -68,7 +68,7 @@ async def mark_as_sent(log_id: int, user: User = Depends(get_current_user), db: 
         raise HTTPException(status_code=404, detail="DM log not found")
 
     dm.status = "sent"
-    dm.sent_at = datetime.utcnow()
+    dm.sent_at = datetime.now(UTC)
     db.commit()
     return {"detail": "Marked as sent"}
 
@@ -103,7 +103,7 @@ async def reply_with_material(log_id: int, user: User = Depends(get_current_user
 
     if result["status_code"] in (200, 201):
         dm.status = "sent"
-        dm.sent_at = datetime.utcnow()
+        dm.sent_at = datetime.now(UTC)
     else:
         dm.status = "failed"
         dm.error_message = str(result["body"])[:1000]

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Add Posts - DM Automator{% endblock %}
+
+{% block content %}
+<h1>Add Instagram Posts</h1>
+<p>Paste your Instagram post or reel URLs below (one per line). The tool will automatically resolve Media IDs via the Graph API.</p>
+
+<form id="addForm" class="form-card">
+    <div class="form-group">
+        <label for="urls">Instagram URLs</label>
+        <textarea id="urls" rows="10" placeholder="https://www.instagram.com/reel/ABC123/
+https://www.instagram.com/p/XYZ789/
+https://www.instagram.com/reel/DEF456/" required></textarea>
+        <small>Supported formats: /p/..., /reel/..., /tv/...</small>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary" id="submitBtn">Resolve & Add</button>
+        <a href="/dashboard/posts" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+
+<div id="result" style="display:none; margin-top: 1.5rem;">
+    <div id="result-success" class="result-section" style="display:none;">
+        <h3>Added Successfully</h3>
+        <table class="table" id="success-table">
+            <thead><tr><th>URL</th><th>Shortcode</th><th>Media ID</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div id="result-errors" class="result-section" style="display:none;">
+        <h3>Errors</h3>
+        <table class="table" id="error-table">
+            <thead><tr><th>URL</th><th>Error</th></tr></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('addForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Resolving...';
+
+    const text = document.getElementById('urls').value;
+    const urls = text.split('\n').map(u => u.trim()).filter(u => u);
+
+    try {
+        const resp = await fetch('/api/posts/bulk-add', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({urls}),
+        });
+
+        const data = await resp.json();
+
+        if (!resp.ok) {
+            alert(data.detail || 'Error');
+            btn.disabled = false;
+            btn.textContent = 'Resolve & Add';
+            return;
+        }
+
+        document.getElementById('result').style.display = 'block';
+
+        // Show successes
+        if (data.added && data.added.length > 0) {
+            document.getElementById('result-success').style.display = 'block';
+            const tbody = document.querySelector('#success-table tbody');
+            tbody.innerHTML = '';
+            data.added.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${item.url}</td><td><code>${item.shortcode}</code></td><td>${item.media_id}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Show errors
+        if (data.errors && data.errors.length > 0) {
+            document.getElementById('result-errors').style.display = 'block';
+            const tbody = document.querySelector('#error-table tbody');
+            tbody.innerHTML = '';
+            data.errors.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${item.url}</td><td class="text-danger">${item.error}</td>`;
+                tbody.appendChild(tr);
+            });
+        }
+
+        showToast(`${data.total_added} posts added, ${data.total_errors} errors`);
+
+    } catch (err) {
+        alert('Network error');
+    }
+
+    btn.disabled = false;
+    btn.textContent = 'Resolve & Add';
+});
+</script>
+{% endblock %}

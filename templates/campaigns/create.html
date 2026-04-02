@@ -6,29 +6,32 @@
 
 <form id="campaignForm" class="form-card">
     <div class="form-group">
-        <label for="platform">Platform</label>
-        <select id="platform" name="platform" required>
-            <option value="instagram">Instagram</option>
-            <option value="linkedin">LinkedIn</option>
+        <label for="instagram_post_id">Select Post</label>
+        {% if posts %}
+        <select id="instagram_post_id" name="instagram_post_id" required>
+            <option value="">-- Select a tracked post --</option>
+            {% for post in posts %}
+            <option value="{{ post.id }}" data-media-id="{{ post.media_id }}" data-url="{{ post.url }}">
+                {{ post.post_type|upper }} — {{ post.shortcode }} — {{ (post.caption or 'No caption')[:50] }}
+            </option>
+            {% endfor %}
         </select>
-    </div>
-
-    <div class="form-group">
-        <label for="post_id">Post ID</label>
-        <input type="text" id="post_id" name="post_id" required
-               placeholder="Instagram Media ID or LinkedIn Post URN">
-        <small>Instagram: Media ID from Graph API. LinkedIn: Post URN (e.g., urn:li:share:123456)</small>
-    </div>
-
-    <div class="form-group">
-        <label for="post_url">Post URL (optional)</label>
-        <input type="url" id="post_url" name="post_url" placeholder="https://instagram.com/p/...">
+        <small>Only posts with resolved Media IDs are shown. <a href="/dashboard/posts/add">Add more posts</a></small>
+        {% else %}
+        <p class="text-muted">No tracked posts found. <a href="/dashboard/posts/add">Add Instagram URLs first</a>.</p>
+        {% endif %}
     </div>
 
     <div class="form-group">
         <label for="keyword">Trigger Keyword</label>
         <input type="text" id="keyword" name="keyword" required placeholder="MATERIAL">
         <small>Case-insensitive. When someone comments this word, they get the DM.</small>
+    </div>
+
+    <div class="form-group">
+        <label for="dm_limit">DM Limit (optional)</label>
+        <input type="number" id="dm_limit" name="dm_limit" placeholder="Leave empty for unlimited" min="1">
+        <small>Auto-deactivates after this many DMs are sent.</small>
     </div>
 
     <div class="form-group">
@@ -84,6 +87,13 @@ function removeMaterial(btn) {
 document.getElementById('campaignForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const form = e.target;
+
+    const postSelect = form.querySelector('#instagram_post_id');
+    const selectedOption = postSelect.options[postSelect.selectedIndex];
+    const mediaId = selectedOption.dataset.mediaId;
+    const postUrl = selectedOption.dataset.url;
+    const instagramPostId = parseInt(postSelect.value);
+
     const rows = form.querySelectorAll('.material-row');
     const materials = [];
     rows.forEach((row, i) => {
@@ -94,11 +104,15 @@ document.getElementById('campaignForm').addEventListener('submit', async (e) => 
         });
     });
 
+    const dmLimit = form.querySelector('#dm_limit').value;
+
     const body = {
-        platform: form.querySelector('#platform').value,
-        post_id: form.querySelector('#post_id').value,
-        post_url: form.querySelector('#post_url').value || null,
+        platform: 'instagram',
+        post_id: mediaId,
+        post_url: postUrl,
+        instagram_post_id: instagramPostId,
         keyword: form.querySelector('#keyword').value,
+        dm_limit: dmLimit ? parseInt(dmLimit) : null,
         materials: materials,
     };
 
@@ -113,18 +127,11 @@ document.getElementById('campaignForm').addEventListener('submit', async (e) => 
             window.location.href = `/dashboard/campaigns/${data.id}`;
         } else {
             const err = await resp.json();
-            showResult(err.detail || 'Error creating campaign', 'error');
+            showToast(err.detail || 'Error creating campaign', 'error');
         }
     } catch (err) {
-        showResult('Network error', 'error');
+        showToast('Network error', 'error');
     }
 });
-
-function showResult(msg, type) {
-    const el = document.getElementById('result-msg');
-    el.textContent = msg;
-    el.className = `alert alert-${type}`;
-    el.style.display = 'block';
-}
 </script>
 {% endblock %}

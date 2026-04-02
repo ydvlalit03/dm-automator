@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}DM Queue - DM Automator{% endblock %}
+
+{% block content %}
+<h1>DM Queue</h1>
+<p>DMs are queued and sent automatically by the background processor (every 30 seconds, up to 200/day).</p>
+
+{% if queue_items %}
+<table class="table">
+    <thead>
+        <tr>
+            <th>Recipient</th>
+            <th>Status</th>
+            <th>Retries</th>
+            <th>Error</th>
+            <th>Created</th>
+            <th>Next Retry</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in queue_items %}
+        <tr>
+            <td>{{ item.recipient_username or item.recipient_id[:20] }}</td>
+            <td><span class="badge badge-{{ item.status }}">{{ item.status }}</span></td>
+            <td>{{ item.retry_count }} / {{ item.max_retries }}</td>
+            <td class="truncate">{{ (item.error_message or '-')[:50] }}</td>
+            <td>{{ item.created_at.strftime('%m/%d %H:%M') }}</td>
+            <td>{{ item.next_retry_at.strftime('%m/%d %H:%M') if item.next_retry_at else '-' }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+    <p>Queue is empty. DMs will appear here when keyword comments are detected.</p>
+</div>
+{% endif %}
+{% endblock %}

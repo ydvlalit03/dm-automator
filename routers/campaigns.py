@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from auth import get_current_user
@@ -23,18 +24,24 @@ def _campaign_to_out(campaign: Campaign, db: Session) -> dict:
 
 @router.get("", response_model=list[CampaignOut])
 async def list_campaigns(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if isinstance(user, RedirectResponse):
+        return user
     campaigns = db.query(Campaign).filter(Campaign.user_id == user.id).order_by(Campaign.created_at.desc()).all()
     return [_campaign_to_out(c, db) for c in campaigns]
 
 
 @router.post("", response_model=CampaignOut)
 async def create_campaign(data: CampaignCreate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if isinstance(user, RedirectResponse):
+        return user
     campaign = Campaign(
         user_id=user.id,
+        instagram_post_id=data.instagram_post_id,
         platform=data.platform,
         post_id=data.post_id,
         post_url=data.post_url,
         keyword=data.keyword.lower(),
+        dm_limit=data.dm_limit,
     )
     db.add(campaign)
     db.flush()
@@ -49,6 +56,8 @@ async def create_campaign(data: CampaignCreate, user: User = Depends(get_current
 
 @router.get("/{campaign_id}", response_model=CampaignOut)
 async def get_campaign(campaign_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if isinstance(user, RedirectResponse):
+        return user
     campaign = db.query(Campaign).filter(Campaign.id == campaign_id, Campaign.user_id == user.id).first()
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
@@ -59,6 +68,8 @@ async def get_campaign(campaign_id: int, user: User = Depends(get_current_user),
 async def update_campaign(
     campaign_id: int, data: CampaignUpdate, user: User = Depends(get_current_user), db: Session = Depends(get_db)
 ):
+    if isinstance(user, RedirectResponse):
+        return user
     campaign = db.query(Campaign).filter(Campaign.id == campaign_id, Campaign.user_id == user.id).first()
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")
@@ -69,9 +80,10 @@ async def update_campaign(
         campaign.is_active = data.is_active
     if data.post_url is not None:
         campaign.post_url = data.post_url
+    if data.dm_limit is not None:
+        campaign.dm_limit = data.dm_limit
 
     if data.materials is not None:
-        # Replace all materials
         db.query(Material).filter(Material.campaign_id == campaign.id).delete()
         for mat in data.materials:
             db.add(Material(campaign_id=campaign.id, material_type=mat.material_type, content=mat.content, order=mat.order))
@@ -83,6 +95,8 @@ async def update_campaign(
 
 @router.delete("/{campaign_id}")
 async def delete_campaign(campaign_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if isinstance(user, RedirectResponse):
+        return user
     campaign = db.query(Campaign).filter(Campaign.id == campaign_id, Campaign.user_id == user.id).first()
     if not campaign:
         raise HTTPException(status_code=404, detail="Campaign not found")

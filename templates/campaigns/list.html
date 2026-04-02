@@ -12,11 +12,11 @@
     <thead>
         <tr>
             <th>Platform</th>
+            <th>Post</th>
             <th>Keyword</th>
-            <th>Post ID</th>
             <th>Status</th>
+            <th>DMs</th>
             <th>Comments</th>
-            <th>DMs Sent</th>
             <th>Created</th>
             <th>Actions</th>
         </tr>
@@ -25,17 +25,26 @@
         {% for item in campaign_data %}
         <tr>
             <td><span class="badge badge-{{ item.campaign.platform }}">{{ item.campaign.platform }}</span></td>
+            <td>
+                {% if item.campaign.instagram_post %}
+                <a href="{{ item.campaign.instagram_post.url }}" target="_blank">{{ item.campaign.instagram_post.shortcode }}</a>
+                {% else %}
+                {{ item.campaign.post_id[:15] }}...
+                {% endif %}
+            </td>
             <td><code>{{ item.campaign.keyword }}</code></td>
-            <td class="truncate">{{ item.campaign.post_id[:20] }}...</td>
             <td>
                 {% if item.campaign.is_active %}
                 <span class="badge badge-active">Active</span>
                 {% else %}
                 <span class="badge badge-inactive">Inactive</span>
                 {% endif %}
+                {% if item.campaign.dm_limit %}
+                <small>({{ item.campaign.dm_count }}/{{ item.campaign.dm_limit }})</small>
+                {% endif %}
             </td>
-            <td>{{ item.comments }}</td>
             <td>{{ item.dms_sent }}</td>
+            <td>{{ item.comments }}</td>
             <td>{{ item.campaign.created_at.strftime('%Y-%m-%d') }}</td>
             <td>
                 <a href="/dashboard/campaigns/{{ item.campaign.id }}" class="btn btn-sm">View</a>
@@ -46,8 +55,7 @@
 </table>
 {% else %}
 <div class="empty-state">
-    <p>No campaigns yet. Create your first one!</p>
-    <a href="/dashboard/campaigns/new" class="btn btn-primary">+ New Campaign</a>
+    <p>No campaigns yet. <a href="/dashboard/posts/add">Add some Instagram posts</a> first, then create a campaign.</p>
 </div>
 {% endif %}
 {% endblock %}

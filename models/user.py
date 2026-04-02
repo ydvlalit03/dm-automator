@@ -26,3 +26,4 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     campaigns: Mapped[list["Campaign"]] = relationship(back_populates="user")
+    instagram_posts: Mapped[list["InstagramPost"]] = relationship(back_populates="user")

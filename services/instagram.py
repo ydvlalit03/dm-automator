@@ -1,6 +1,7 @@
 import hashlib
 import hmac
-from datetime import datetime
+import logging
+from datetime import UTC, datetime
 
 import httpx
 from sqlalchemy.orm import Session
@@ -108,7 +109,7 @@ async def process_comment_event(
         recipient_platform_id=commenter_id,
         status=status,
         error_message=error if status != "sent" else None,
-        sent_at=datetime.utcnow() if status == "sent" else None,
+        sent_at=datetime.now(UTC) if status == "sent" else None,
     )
     db.add(dm_log)
     db.commit()
