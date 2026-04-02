@@ -1,0 +1,27 @@
+services:
+  app:
+    build: .
+    container_name: dm-automator
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/data
+      - ./.env:/app/.env:ro
+    environment:
+      - DATABASE_URL=sqlite:////data/dm_automator.db
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; r = httpx.get('http://localhost:8000/health'); assert r.status_code == 200"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: always
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - app
